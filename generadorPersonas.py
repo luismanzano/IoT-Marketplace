@@ -1,6 +1,7 @@
 import paho.mqtt.client as mqtt_client
 import random
 import time
+import json
 import numpy as np
 import connection as con #ARCHIVO QUE NOS CONECTA CON ELEPHANT
 import psycopg2
@@ -9,7 +10,7 @@ from threading import Timer
 
 broker = "127.0.0.1"
 port = 1883
-topic = "tienda/entrada"
+topic = "tienda/entrada1"
 client_id = f'python-mqtt-{random.randint(0, 1000)}'
 
 
@@ -53,7 +54,7 @@ def usuario_afiliado(cedula):
         connection = con.get_connection()
         cursor = connection.cursor()
         query = """SELECT cedula FROM afiliado WHERE cedula = (%s)"""
-        cursor.execute(query, (cedula,))
+        cursor.execute(query,cedula)
         response = cursor.fetchone()
         
         if response == None:
@@ -65,10 +66,9 @@ def usuario_afiliado(cedula):
         print("Se ha producido el siguiente error", error)
 
 #FUNCION DE MUESTRA PARA HACER LOS TIEMPOS DE LLEGADA DE CADA PERSONA
-def hora_entrada_salida(value):
+def hora_entrada_salida():
         hora_entrada = datetime.now()
-        hora_salida = hora_entrada + timedelta(minutes = random.randint(2, 60))
-        
+        hora_salida = hora_entrada + timedelta(minutes = np.random.normal(50, 15))
         return [hora_entrada, hora_salida]
 
 #funcion que nos conecta MQTT
@@ -87,10 +87,18 @@ def connect_mqtt():
 #publicando mensajes
 def publish(client, tapaboca):
     for i in range(25):
+        hora = hora_entrada_salida()
         si_tiene = True if i <= tapaboca else False
-        time.sleep(1)
-        msg = "{cedula: " + str(gen_cedula()) + "," + "temperatura: " + str(gen_temperatura()) + "," + "tapabocas: " + str(si_tiene) + "," " }"
-        result = client.publish(topic, msg)
+        time.sleep(5)
+        msg = {
+            "cedula":gen_cedula(),
+            "temperatura":gen_temperatura(),
+            "tapabocas": si_tiene,
+            "hora_entrada": str(hora[0]),
+            "hora_salida": str(hora[1]),
+            }
+        result = client.publish(topic, json.dumps(msg))
+        print(msg)
     status = result[0]
     if status == 0:
         print(f"Send `{msg}` to topic `{topic}`")
