@@ -68,8 +68,9 @@ def usuario_afiliado(cedula):
 #FUNCION DE MUESTRA PARA HACER LOS TIEMPOS DE LLEGADA DE CADA PERSONA
 def hora_entrada_salida():
         hora_entrada = datetime.now()
-        hora_salida = hora_entrada + timedelta(minutes = np.random.normal(50, 15))
-        return [hora_entrada, hora_salida]
+        duracion = np.random.normal(50, 15)
+        hora_salida = hora_entrada + timedelta(minutes = duracion)
+        return [hora_entrada, hora_salida,duracion]
 
 #funcion que nos conecta MQTT
 def connect_mqtt():
@@ -96,6 +97,7 @@ def publish(client, tapaboca):
             "tapabocas": si_tiene,
             "hora_entrada": str(hora[0]),
             "hora_salida": str(hora[1]),
+            "duracion": hora[2],
             }
         result = client.publish(topic, json.dumps(msg))
         print(msg)
