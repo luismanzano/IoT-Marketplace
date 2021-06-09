@@ -88,6 +88,38 @@ def usuario_afiliado(cedula):
 
 
 
+def cola_salida(duracion):
+    if len(contador)<20:
+        contador.append(duracion)
+    else:
+        cola.append(duracion)
+
+    for i in range(len(contador)):
+        if i != 0:
+            contador[i] -= contador[0]
+            
+            if contador[i] < 0:
+                contador[i] = 0
+
+    contador.sort()
+    
+    if contador[0] < 0:
+        time.sleep(contador[0])
+    contador.pop(0)
+
+    
+
+    if len(contador) < 20 and len(cola) > 0:
+        libre = 20 - len(contador)
+        for i in range(libre):
+            contador.append(cola[0])
+            cola.pop(0)
+
+
+contador = []
+cola = []
+
+
 def on_message(client, userdata, message):
 	#Traduccion de la data porque se recibe codificado
     aux = json.loads(message.payload.decode('utf-8'))
