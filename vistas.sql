@@ -36,8 +36,8 @@ create or replace view temp_avg_diario as
 	group by dia,mes,ano
 	order by ano,mes,dia asc;
 	
-create or replace view cat_menosvendida as
-	select c.nombre as categoria , sum(fp.cantidad), s.nombre from factura_producto fp
+create or replace view cat_menosvendidas as
+	select c.nombre as categoria , count(fp.cantidad) prod_vendidos, s.nombre from factura_producto fp
 		inner join producto p on fp.producto_id = p.producto_id
 		inner join producto_categoria pc on pc.producto_id = p.producto_id
 		inner join categoria c on c.categoria_id = pc.categoria_id 
@@ -46,6 +46,23 @@ create or replace view cat_menosvendida as
 	group by categoria, s.nombre
 	order by sum(fp.cantidad) asc
 	limit 3;
+	
+create or replace view pivottable as
+	SELECT * FROM 
+	crosstab('
+		select categoria,nombre,nro_prod_vendidos from cat_masvendidas
+			 order by 1,2') 
+	AS cat_masvendidas("Categoria" varchar, "Lagos da Beira" bigint, "Liwu" bigint);
+	
+create or replace view cat_masvendidas as
+	select s.nombre, c.nombre categoria, count(fp.producto_id) nro_prod_vendidos from factura f
+	inner join sucursal s on f.sucursal_id = s.sucursal_id
+	inner join factura_producto fp on f.factura_id = fp.factura_id
+	inner join producto p on fp.producto_id = p.producto_id
+	inner join producto_categoria pc on p.producto_id = pc.producto_id
+	inner join categoria c on pc.categoria_id = c.categoria_id
+	group by c.nombre,s.nombre
+	order by count(fp.producto_id) desc
 
 
 create or replace view personas_rechazadas as
