@@ -18,15 +18,17 @@ create or replace view tapabocas_diario as
 	
 	
 create or replace view duracion_avg as
-	select avg(extract(minute from ec.hora_entrada)
-			   - extract(minute from sc.hora_salida)) 
+	select extract(minute from (avg(sc.hora_salida- ec.hora_entrada))),
+			   	extract(day from ec.hora_entrada) as dia,
+				extract(month from ec.hora_entrada) as mes,
+				extract(year from ec.hora_entrada) as ano
 			   from entrada_cliente ec
-	inner join salida_cliente sc on ec.cliente_id = sc.cliente_id
+	inner join salida_cliente sc on ec.cliente_cedula = sc.cliente_cedula
 	group by extract(day from ec.hora_entrada),
 			extract(month from ec.hora_entrada),
 			extract(year from ec.hora_entrada)
 				
-				
+
 create or replace view temp_avg_diario as
 	select avg(temperatura),
 			extract(day from hora_entrada) as dia,
@@ -44,8 +46,7 @@ create or replace view cat_menosvendidas as
 		inner join factura f on fp.factura_id = f.factura_id
 		inner join sucursal s on f.sucursal_id = s.sucursal_id
 	group by categoria, s.nombre
-	order by sum(fp.cantidad) asc
-	limit 3;
+	order by sum(fp.cantidad) asc;
 	
 create or replace view pivottable as
 	SELECT * FROM 
@@ -80,37 +81,33 @@ create or replace view prod_masvendidos as
 		inner join factura f on fp.factura_id = f.factura_id
 		inner join sucursal s on f.sucursal_id = s.sucursal_id
 	group by prod_nombre, s.nombre
-	order by sum(p.producto_id) desc
-	limit 5;
+	order by sum(p.producto_id) desc;
 
 create or replace view clientes_solosede1 as
-	select cl.cliente_id, cl.cedula, f.sucursal_id as nro_sucursal from factura f
+	select count(cl.cedula), f.sucursal_id from factura f
 		inner join cliente cl on f.cedula_cliente = cl.cedula
 		where not exists (select 1 from factura f 
 						  	where sucursal_id = 2 
-						 	and fecha between (now() - interval'7 days') and 
-						 					(now() + interval'7 days'))
-		and fecha between (now() - interval'7 days') and 
-						 					(now() + interval'7 days')
-	group by cl.cliente_id,cl.cedula, f.sucursal_id;
+						 	and cedula_cliente = cl.cedula)
+		and fecha between (now() - interval'7 days') and now()
+		group by f.sucursal_id
+											
+
 	
 create or replace view clientes_solosede2 as
-	select cl.cedula, f.sucursal_id as nro_sucursal from factura f
+	select count(cl.cedula), f.sucursal_id from factura f
 		inner join cliente cl on f.cedula_cliente = cl.cedula
 		where not exists (select 1 from factura f 
 						  	where sucursal_id = 1 
-						 	and fecha between (now() - interval'7 days') and 
-						 					(now() + interval'7 days'))
-		and fecha between (now() - interval'7 days') and 
-						 					(now() + interval'7 days')
-	group by cl.cedula, f.sucursal_id;
+						 	and cedula_cliente = cl.cedula)
+		and fecha between (now() - interval'7 days') and now()
+		group by f.sucursal_id
 	
 create or replace view clientes_ambas_sedes as
-	select cl.cedula from factura f
+	select count(cl.cedula) from factura f
 		inner join cliente cl on f.cedula_cliente = cl.cedula
-		where f.sucursal_id = 1 or f.sucursal_id = 2
-		and fecha between (now() - interval'7 days') and 
-						 					(now() + interval'7 days')
+		where f.sucursal_id = 1 and f.sucursal_id = 2
+		and fecha between (now() - interval'7 days') and now()
 											
 
 	
