@@ -210,5 +210,5 @@ st.write(testing)
 if add_selectbox == 1:
     st.write("Nuestra tienda es bastante nueva, los clientes han comprado solo el dia martes y su hora favorita es al mediodia, quizas porque al ser una tienda de conveniencia, la visitan en el lunch break del trabajo.")
 
-elif add_selectbox == 1:
+elif add_selectbox == 2:
     st.write("Nuestra tienda es bastante nueva, los clientes han comprado solo el dia Viernes y solo han comprado a las 18:00. La unica hora con ventas y a su vez, la que tiene mas ventas tambien.")
